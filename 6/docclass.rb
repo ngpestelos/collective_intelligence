@@ -22,14 +22,10 @@ class Classifier
 	end
 
 	def fcount(f, cat)
-	#	return 0.0 unless @fc.keys.flatten.include?(f) && @fc[f].keys.include?(cat)
-
 		@fc[f][cat].to_f
 	end
 
 	def catcount(cat)
-	#	return 0 unless cc.keys.include?(cat)
-
 		@cc[cat].to_f
 	end
 
@@ -43,17 +39,66 @@ class Classifier
 
 	def train(item, category)
 		features = @getfeatures.call(item)
-		pp features
 		features.each {|f| incf(f, category)}
 
 		incc(category)
 	end
+
+	def fprob(f, cat)
+		return 0 if catcount(cat) == 0
+		fcount(f, cat) / catcount(cat)
+	end
+
+	def weightedprob(f, cat, prf, weight=1.0, ap=0.5)
+		basicprob = prf.call(f, cat)
+
+		totals = categories.inject(0){|m, o| m += fcount(f, o); m}
+
+		((weight * ap ) + (totals * basicprob))  / (weight + totals)
+	end
+end
+
+def sampletrain(cl)
+	cl.train('Nobody owns the water.','good') 
+	cl.train('the quick rabbit jumps fences','good') 
+	cl.train('buy pharmaceuticals now','bad') 
+	cl.train('make quick money at the online casino','bad') 
+	cl.train('the quick brown fox jumps','good') 
+end
+
+
+class NaiveBayes < Classifier
+	
+	def docprob(item, cat)
+		features = @getfeatures.call(item)
+
+		p = 1	
+
+		features.each {|f| p *= weightedprob(f, cat, lambda{|*args| self.fprob(*args)})}
+
+		p
+	end
+
+	def prob(item, cat)
+		catprob = catcount(cat) / totalcount
+		docprob = docprob(item, cat)
+		
+		docprob * catprob
+	end
+
+end
+
+
+def test
+	@@getfeatures = lambda{|*args| getwords(*args)}
+	test1
+	test2
+	test3
+	test4
 end
 
 def test1
-	getfeatures = lambda{|*args| getwords(*args)}
-	cl = Classifier.new(getfeatures)
-
+	cl = Classifier.new(@@getfeatures)
 	cl.train('the quick brown fox jumps over the lazy dog', 'good')
 	cl.train('make quick money in the online casino', 'bad')
 	p cl.fcount('quick', 'good')
@@ -61,3 +106,34 @@ def test1
 	p cl.fcount('quick', 'bad')
 	puts "should be 1.0\n\n"
 end
+
+def test2
+	cl = Classifier.new(@@getfeatures)
+	sampletrain(cl)
+	p cl.fprob('quick', 'good')
+	p "should be 0.6666...3"
+end
+
+def test3
+	cl = Classifier.new(@@getfeatures)
+	sampletrain(cl)
+	p cl.weightedprob('money', 'good', lambda{|*args| cl.fprob(*args)})
+	puts "should be 0.25"
+
+	sampletrain(cl)
+	p cl.weightedprob('money', 'good', lambda{|*args| cl.fprob(*args)})
+	puts "should be 0.166..."
+end
+
+def test4
+	cl = NaiveBayes.new(@@getfeatures)
+	sampletrain(cl)
+
+	p cl.prob('quick rabbit', 'good')
+	puts "should be 1.5624999...7"
+
+	p cl.prob('quick rabbit', 'bad')
+	puts("should be 0.05000...3")
+end
+
+

@@ -11,6 +11,15 @@ class Classifier
 		@fc = Hash.new{|h,k| h[k] = Hash.new{|h1,k1| h1[k1] = 0}} #hash of hashes of 0
 		@cc = Hash.new{|h,k| h[k] = 0}
 		@getfeatures = getfeatures
+		@thresholds = Hash.new{|h,k| h[k] = 0}
+	end
+
+	def setthreshold(cat, t)
+		@thresholds[cat] = t
+	end
+
+	def getthreshold(cat)
+		@thresholds[cat] || 0
 	end
 
 	def incf(f, cat)
@@ -56,6 +65,29 @@ class Classifier
 
 		((weight * ap ) + (totals * basicprob))  / (weight + totals)
 	end
+
+	def classify(item, default='unknown')
+		probs = {}
+
+		max = 0.0
+		best = 'hi'
+
+		categories.each do |cat|
+			probs[cat] = prob(item,cat)
+			if probs[cat] > max
+				max = probs[cat]
+				best = cat
+			end
+		end
+
+		probs.each do |cat, val|
+			next if cat == best
+			return default if probs[cat] * getthreshold(best) > probs[best]
+		end
+		
+		best
+	end
+
 end
 
 def sampletrain(cl)
@@ -95,6 +127,7 @@ def test
 	test2
 	test3
 	test4
+	test5
 end
 
 def test1
@@ -136,4 +169,25 @@ def test4
 	puts("should be 0.05000...3")
 end
 
+def test5
+	cl = NaiveBayes.new(@@getfeatures)
+	sampletrain(cl)
+
+	p cl.classify('quick rabbit')
+	puts "should be good"
+
+	p cl.classify('quick money')
+	puts "should be bad"
+
+	cl.setthreshold('bad', 3.0)
+
+	p cl.classify('quick money')
+	puts "should be unknown"
+
+	10.times { sampletrain(cl) }
+
+	p cl.classify('quick money')
+	puts "should be bad"
+
+end
 

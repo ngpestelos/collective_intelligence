@@ -98,3 +98,43 @@ def test_2
 	p giniimpurity(set1)
 	
 end
+
+def buildtree(rows)
+	return DecisionNode if rows.length == 0
+
+	current_score = entropy(rows)
+
+	best_gain = 0.0
+	best_criteria = nil
+	best_sets = nil
+
+	column_count = rows[0].length - 1
+
+	column_count.times do |col|
+
+			column_values = {}
+
+			for row in rows
+				column_values[row[col]] = 1
+			end
+
+			for value in column_values.keys
+				set1, set2 = divideset(rows, col, value)
+
+				p = set1.length.to_f / rows.length
+				gain = current_score - p * entropy(set1) - (1-p) * entropy(set2)
+				if gain > best_gain and set1.length > 0 and set2.length > 0
+					best_gain = gain
+					best_criteria = [col, value]
+					best_sets = [set1, set2]
+				end
+			end
+		end
+
+		if best_gain > 0
+			trueBranch = buildtree(best_sets[0])
+			falseBranch = buildtree(best_sets[1])
+
+			return DecisionNode.new(
+		end	
+end

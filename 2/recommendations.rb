@@ -3,7 +3,7 @@
 #
 # 			Recommendation system
 #
-DEBUG = 0
+DEBUG = 1
 @people = {'Lisa Rose'=> {'Lady in the Water'=> 2.5, 'Snakes on a Plane'=> 3.5,
  'Just My Luck'=> 3.0, 'Superman Returns'=> 3.5, 'You, Me and Dupree'=> 2.5, 
  'The Night Listener'=> 3.0},
@@ -35,7 +35,7 @@ def euclidean(people, person1, person2)
 	return "Sum was 0" if sum_of_squares == 0.0
 	#errata
 	#
-	1 / (1 + Math.sqrt(sum_of_squares)
+	1 / (1 + Math.sqrt(sum_of_squares))
 end
 
 if DEBUG > 0

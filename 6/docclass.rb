@@ -19,7 +19,7 @@ class Classifier
   end
 
   def getthreshold(cat)
-    @thresholds[cat] || 0
+    @thresholds[cat] || 1.0
   end
 
   def incf(f, cat)

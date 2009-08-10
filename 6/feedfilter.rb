@@ -14,14 +14,18 @@ def read(feed, classifier)
     puts ""
     puts e.summary
 
-    fulltext = "%s\n%s\n%s", e.title, e.publisher, e.summary
+    fulltext = e.title + "\n" + e.publisher + "\n" + e.summary
 
-    print "Guess: ", classifier.classify(fulltext)
-    ans = gets('Category: ').chomp
+    print "Guess: ", classifier.classify(fulltext) + "\n"
+    print "Category: "
+    cl = gets
+    classifier.train(fulltext, cl)
   end
 
 end
 
-@@getfeatures = lambda { |*args| getwords(*args) }
-cl = NaiveBayes.new(@@getfeatures)
-read('http://blogsearch.google.com/blogsearch_feeds?hl=en&q=python&ie=utf-8&num=10&output=rss', cl)
+def test
+  @@getfeatures = lambda { |args| getwords(args) }
+  cl = NaiveBayes.new(@@getfeatures)
+  read('http://blogsearch.google.com/blogsearch_feeds?hl=en&q=python&ie=utf-8&num=10&output=rss', cl)
+end
